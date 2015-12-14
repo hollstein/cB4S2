@@ -660,6 +660,8 @@ def mask_image(args, S2_MSI_granule_path):
 
 
 def main(args):
+    global Pool, ThreadPool
+
     if args.verbosity == 0:
         ff = open(devnull, 'w')
         sys.stdout = ff
