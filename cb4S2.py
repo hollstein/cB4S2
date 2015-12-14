@@ -29,7 +29,8 @@ from psutil import virtual_memory
 from tempfile import TemporaryFile
 import resource
 import matplotlib
-
+from stopit import ThreadingTimeout as Timeout
+from stopit import TimeoutException
 matplotlib.use("agg")
 import matplotlib.pyplot as plt
 from skimage.exposure import rescale_intensity, adjust_gamma
@@ -703,11 +704,13 @@ def main(args):
 
     if args.S2_MSI_granule_path is None:
 
-
-
-        args.S2_MSI_granule_path = glob(args.glob_search_pattern, recursive=True)
-
-
+        try:
+            with Timeout(10.0, swallow_exc=False) as timeout_ctx:
+                args.S2_MSI_granule_path = glob(args.glob_search_pattern, recursive=True)
+        except TimeoutException:
+            print("Search for GRANULES was stoped after 10s without success -> stop here ")
+            print("The search pattern was: %s" % args.glob_search_pattern)
+            return
 
         print("No Input data given -> traverse local path and search for granules:")
         for granule in args.S2_MSI_granule_path:
@@ -1127,7 +1130,14 @@ class Gui(tk.Tk):
 
     def test_pattern(self, event=None):
         pat = self.tk_entry_output_folder.get()
-        res = glob(pat, recursive=True)
+        try:
+            with Timeout(10.0, swallow_exc=False) as timeout_ctx:
+                res = glob(pat, recursive=True)
+        except TimeoutException:
+            print("Search for GRANULES was stopped after 10s without success -> stop here ")
+            print("The search pattern was: %s" % pat)
+            return
+
         print("Test search patterns: %s, results: %i" % (pat, len(res)))
         for ii, rr in enumerate(res):
             print("%i,%s" % (ii, rr))
