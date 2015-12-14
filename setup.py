@@ -10,5 +10,6 @@ setup(
     description='',
     scripts=['cb4S2.py'],
     packages=find_packages(),
-    requires=['glymur', 'numpy', 'scipy', 'dill', 'gdal', 'psutil', 'matplotlib', 'matplotlib','stopit']
+    install_requires=['glymur', 'numpy', 'scipy', 'dill', 'gdal', 'psutil',
+                      'matplotlib', 'matplotlib','stopit']
 )
