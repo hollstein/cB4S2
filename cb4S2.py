@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 __author__ = 'André Hollstein'
 __version__ = "0.1/20151214"
 
@@ -703,7 +702,13 @@ def main(args):
                                clf_to_col=clf_to_col)
 
     if args.S2_MSI_granule_path is None:
+
+
+
         args.S2_MSI_granule_path = glob(args.glob_search_pattern, recursive=True)
+
+
+
         print("No Input data given -> traverse local path and search for granules:")
         for granule in args.S2_MSI_granule_path:
             print(granule)
@@ -1158,6 +1163,14 @@ class Gui(tk.Tk):
 
 
 if __name__ == "__main__":
+
+    major, minor, *_ = sys.version_info
+    major_min,minor_min = 3,5
+    if (major,minor) < (major_min,minor_min):
+        print("This program requires at least python %i.%i, this version is %i.%i. -> quit here." %
+              (major_min,minor_min,major,minor))
+        sys.exit(2)
+
     parser = argparse.ArgumentParser(prog='GFZ-detection',
                                      description='Cloud, Cirrus, Snow, Shadow Detection for Sentinel-2. ')
 
