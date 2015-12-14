@@ -9,5 +9,6 @@ setup(
     author_email='andre.hollstein@gfz-potsdam.de',
     description='',
     scripts=['cb4S2.py'],
-    packages=find_packages(), requires=['glymur', 'numpy', 'scipy', 'dill', 'gdal', 'psutil', 'matplotlib', 'matplotlib']
+    packages=find_packages(),
+    requires=['glymur', 'numpy', 'scipy', 'dill', 'gdal', 'psutil', 'matplotlib', 'matplotlib','stopit']
 )
