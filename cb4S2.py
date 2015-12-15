@@ -9,7 +9,7 @@ import numpy as np
 from xml.etree.ElementTree import QName
 import xml.etree.ElementTree
 from scipy.ndimage.interpolation import zoom
-from time import time, sleep
+from time import time, sleep, gmtime
 from os import path
 import os
 import errno
@@ -106,7 +106,7 @@ where [..] denotes an arbitrary, but valid path on your file system.""",
         """www""",
 
     "TT_export_to_RGB_blend":
-        """wwww"""
+        """wwww""",
 }
 
 
@@ -764,26 +764,42 @@ def main(args):
 
 
 class StdRedirector(object):
-    def __init__(self, widget, gui=None):
+    def __init__(self, widget, gui=None,logfile=None):
         self.widget = widget
         self.counter = 0
         self.gui = gui
+        if logfile is not None:
+            mkdir_p(path.dirname(logfile))
+            mode = "w" if path.exists(logfile) is False else "a"
+            self.logfile = open(logfile,mode)
+            self.logging = True
+        else:
+            self.logging = False
+
 
     def write(self, string):
-        # self.widget.insert(tk.END,string)
         self.counter += 1
-        # self.widget.insert(tk.END, "%s:%s" % (str(ctime()), str(string).strip()))
-        # self.widget.insert(tk.END, string)
-
         rr = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024. ** 2
         ss = str(string).rstrip()
 
-        if len(ss) > 0:
-            self.widget.insert(tk.END, "mem: %.2f GB : %s\n" % (rr, ss))
+        if len(ss)>0:
+            ss = "mem: %.2f GB : %s" % (rr,ss)
+            self.widget.insert(tk.END,ss+"\n")
             self.widget.see(tk.END)
+            if self.logging:
+                self.logfile.write(ss+"\n")
+                self.logfile.flush()
 
         if self.gui.update is not None:
             self.gui.update()
+
+    def __close_logfile__(self):
+        if self.logging:
+            self.logfile.close()
+
+    def __del__(self):
+        self.write("EEooFF")
+        self.__close_logfile__()
 
     def flush(self):
         pass
@@ -1081,8 +1097,10 @@ class Gui(tk.Tk):
         tk_text.pack(fill=tk.BOTH, expand=1)
         sb.config(command=tk_text.yview)
 
-        sys.stdout = StdRedirector(tk_text, gui=self)
-        sys.stderr = StdRedirector(tk_text, gui=self)
+        out = StdRedirector(tk_text, gui=self,logfile=args.logfile_stub % args.suffix)
+        sys.stdout = out
+        sys.stderr = out
+
 
     def update_gui(self):
         while self.updateNeeded:
@@ -1096,7 +1114,7 @@ class Gui(tk.Tk):
 
         for button in self.buttons_deactivate_while_processing:
             button["state"] = "disabled"
-
+        self.args.logging = True
         self.args.target_resolution = self.tr.get()
         self.args.number_of_threads = self.tk_scale.get()
         self.args.processing_tiles = self.tk_scale_tiles.get()
@@ -1185,21 +1203,14 @@ if __name__ == "__main__":
                                      description='Cloud, Cirrus, Snow, Shadow Detection for Sentinel-2. ')
 
     group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument("-i", "--S2_MSI_granule_path", action="store", type=str, nargs="*",
-                       help=texts["S2_MSI_granule_path"])
+    group.add_argument("-i", "--S2_MSI_granule_path", action="store", type=str, nargs="*",help=texts["S2_MSI_granule_path"])
     group.add_argument("-f", "--tasks_input_file", action="store", type=str, help=texts["tasks_input_file"])
-
-    parser.add_argument("-r", "--target_resolution", help="sdsd", action="store", type=float, default=20.0,
-                        required=False)
-    parser.add_argument("-o", "--interpolation_order", help="sdsd", action="store", type=int, default=1, required=False,
-                        choices=range(1, 6))
-    parser.add_argument("-p", "--persistence_file", help="asd", action="store", type=str,
-                        default="./cb_data_20151211.pkl")  # "./cb_data_20151210.pkl")
-    parser.add_argument("-e", "--mask_export_format", help="asd", action="store", type=str, default="jp2",
-                        choices=["jp2"])
+    parser.add_argument("-r", "--target_resolution", help="sdsd", action="store", type=float, default=20.0,required=False)
+    parser.add_argument("-o", "--interpolation_order", help="sdsd", action="store", type=int, default=1, required=False,choices=range(1, 6))
+    parser.add_argument("-p", "--persistence_file", help="asd", action="store", type=str,default="./cb_data_20151211.pkl")
+    parser.add_argument("-e", "--mask_export_format", help="asd", action="store", type=str, default="jp2",choices=["jp2"])
     parser.add_argument("-w", "--show_warnings", help="asd", action="store_true", default=False)
-    parser.add_argument("-t", "--float_type", help="sdsd", action="store", type=int, default=32, required=False,
-                        choices=[16, 32, 64])
+    parser.add_argument("-t", "--float_type", help="sdsd", action="store", type=int, default=32, required=False,choices=[16, 32, 64])
     parser.add_argument("-d", "--output_directory", help="asd", action="store", type=str, default="./")
     parser.add_argument("-m", "--create_output_folder", help="asd", action="store_false", default=True)
     parser.add_argument("-v", "--verbosity", help="asd", action="store", type=int, choices=[0, 1], default=1)
@@ -1207,21 +1218,21 @@ if __name__ == "__main__":
     parser.add_argument("-q", "--use_thread_pool", help="asd", action="store_true", default=False)
     parser.add_argument("-j", "--RGB_channels", help="asd", action="store", type=str, default="B11,B08,B03")
     parser.add_argument("-g", "--gui", help="asd", action="store", type=str, default="yes", choices=["yes", "no"])
-
     parser.add_argument("-x", "--export_RGB", help="asd", action="store_true", default=False)
     parser.add_argument("-z", "--export_mask_blend", help="asd", action="store_true", default=False)
     parser.add_argument("-B", "--export_mask_rgb", help="asd", action="store_true", default=False)
     parser.add_argument("-C", "--export_confidence", help="asd", action="store_true", default=False)
-
-    parser.add_argument("-a", "--additional_output_pixel_skip", help="sdsd", action="store", type=int, default=1,
-                        required=False)
-    parser.add_argument("-T", "--processing_tiles", help="asd", action="store", type=int, choices=range(0, 20),
-                        default=10)
+    parser.add_argument("-a", "--additional_output_pixel_skip", help="sdsd", action="store", type=int, default=1,required=False)
+    parser.add_argument("-T", "--processing_tiles", help="asd", action="store", type=int, choices=range(0, 20),default=10)
     parser.add_argument("-G", "--glob_search_pattern", help="asd", action="store", type=str, default="**/GRANULE/*")
-
     parser.add_argument("-W", "--overwrite_output", help="asd", action="store_true", default=False)
+    parser.add_argument("-l", "--logging", help="asd", action="store_true", default=False)
+    parser.add_argument("-L", "--logfile_stub", help="asd", type=str, action="store", default="./cb4S2_%s.log")
 
     args = parser.parse_args()
+
+    tme = gmtime()
+    args.suffix = "%i%i%i_%i:%i" % (tme.tm_year,tme.tm_mon,tme.tm_mday,tme.tm_hour,tme.tm_min)
 
     if args.S2_MSI_granule_path is not None or args.tasks_input_file is not None and args.gui == "no":
         main(args)
