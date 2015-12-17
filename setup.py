@@ -8,7 +8,7 @@ setup(
     author='André Hollstein',
     author_email='andre.hollstein@gfz-potsdam.de',
     description='',
-    scripts=['cb4S2.py'],
+    scripts=['cB4S2.py'],
     packages=find_packages(),
     install_requires=['glymur', 'numpy', 'scipy', 'dill', 'gdal', 'psutil',
                       'matplotlib', 'matplotlib','stopit']
