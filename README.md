@@ -10,4 +10,4 @@ Requires at least python 3.5.
 
 ## as a command line tool
 
-![screen of the command line][https://github.com/hollstein/images/blob/master/cB4S2_cmdl.jpg]
+![screen of the command line](https://github.com/hollstein/images/blob/master/cB4S2_cmdl.jpg)
