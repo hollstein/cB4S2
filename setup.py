@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='cb4S2',
+    name='cB4S2',
     version='2015.12.14',
     url='',
     license='Creative Commons Attribution-ShareAlike 4.0 International License',
