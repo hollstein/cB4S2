@@ -4,7 +4,7 @@ Requires at least python 3.5.
 
 # Install using pip
 
-`pip install git+git://github.com/hollstein/cb4S2.git`
+`pip install git+git://github.com/hollstein/cB4S2.git`
 
 # Usage
 
