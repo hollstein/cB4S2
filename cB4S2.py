@@ -37,7 +37,6 @@ from skimage.exposure import rescale_intensity, adjust_gamma
 from threading import Thread
 
 import tkinter as tk
-from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import askdirectory
 
@@ -50,7 +49,7 @@ numpy_types = {16: np.float16, 32: np.float32, 64: np.float64}
 
 texts = {
     "welcome":
-        """classical Bayesian for Sentinal-2: cB4S2 Version: %s""" % __version__,
+        """classical Bayesian for Sentinel-2: cB4S2 Version: %s""" % __version__,
 
     "S2_MSI_granule_path":
         """Path or pattern to S2 granule folders which shall be processed. If not set otherwise by --output_directory, the output masks are written to the ganule folders. This option is mutually incompatible with --tasks_input_file.""",
@@ -78,35 +77,40 @@ In this example, [..] denotes an arbitrary, but valid path on your file system."
 where [..] denotes an arbitrary, but valid path on your file system.""",
 
     "TT_button_classifier_file":
-        """TBD""",
+        """The actual classifier is stored in a classifier file which is needed to operate the classification and which can be updaded separately. Although a default value whill we defined, a different file can be selected using this dialog.""",
 
     "TT_button_output_folder":
-        """TBD""",
+        """Specify a output path where classification results can be stored. The current workting directory is set as default.""",
 
     "TT_target_resolution":
-        """TBD""",
+        """Different Sentinel-2 MSI bands are distributed in 10m, 20m, and 60m spatial sampling. The detection is perfomred on a multi-spectral data set with homogenious spatial sampling which is also the resulting resolution for the final mask.""",
 
     "TT_interpolation_order":
-        """TBD""",
+        """Order of interpolation for homogenisation of different spatial samplings. 1: linear interpolation, 2: quadratic interpolation, ....""",
 
     "TT_number_of_threads":
-        """TBD""",
+        """The processor can run in parallel on the level of Sentinel-2 tiles (granules). Increasing the number of processes can decrease the total processing time but needs more main memory.""",
 
     "TT_export_to_RGB":
-        """Write jpeg image with RGB of Sentinel-2 image.
-""",
+        """Write jpeg image with RGB of Sentinel-2 image.""",
 
     "TT_export_to_RGB_mask":
-        """Write gray scalse image of the scene and blend with RGB view of the mask. """,
+        """Write a gray scale jpeg image of the scene and blend with RGB view of the computed mask. """,
 
     "TT_number_of_tiles":
-        """www""",
+        """The needed main memory per process depends on the fraction of the Sentinel-2 MSI image which is keept im memory. Increasing the number of tiles per image decreases the total amount of needed main memory.""",
 
     "TT_export_confidence":
-        """www""",
+        """Export a image with the classification confidende for each pixel.""",
 
     "TT_export_to_RGB_blend":
-        """wwww""",
+        """The computed mask is converted to a RGB color image and blended with a gray scale version of the original RGB image. The output is saved as jpeg file along with other results. """,
+
+    "TT_search_pattern":
+    """Granules can be specified using a search pattern which is applied to all directories below the current working directory. The search is stopped after 10 seconds to prevent a frozen application. When using the GUI, the current pattern can be tested by hitting [ENTER] or clicking on the button to the right side. Current results will be printed to the output window..""",
+    
+    "TT_export_jp2_csv":
+        """Export mask to jp2 image and store additional metadata in a separate csv file. """
 }
 
 
@@ -333,7 +337,7 @@ class S2_MSI_Mask(object):
         fig.clear()
         plt.close(fig)
 
-    def export_mask_blend(self, fn_img, clf_to_col, rgb_img):
+    def export_mask_blend(self, fn_img, clf_to_col, rgb_img,alpha=0.6):
         mask_rgb = self.mask_rgb_array(clf_to_col)
 
         dpi = 100.0
@@ -343,7 +347,7 @@ class S2_MSI_Mask(object):
         # RGB image of scene as background
         ax.imshow(rgb_img, interpolation="none")
         # mask colors above, but transparent
-        ax.imshow(mask_rgb, interpolation="none", alpha=0.6)
+        ax.imshow(mask_rgb, interpolation="none", alpha=alpha)
         ax.set_axis_off()
         plt.savefig(fn_img, dpi=dpi)
         fig.clear()
@@ -590,7 +594,7 @@ def mask_image(args, S2_MSI_granule_path):
     def fnly():
         try:
             return sys.stdout.lines, sys.stderr.lines
-        except:
+        except NameError:
             return None
 
     if args.output_directory == "":
@@ -652,7 +656,8 @@ def mask_image(args, S2_MSI_granule_path):
         rgb_img = S2_img.S2_image_to_rgb(rgb_bands=args.RGB_channels.split(","))
         fn = path.join(path_output, "%s_MASK_BLEND.jpg" % basename_output)
         print("Write MASK with blended gray scale Image to: %s" % fn)
-        S2_msk.export_mask_blend(fn, clf_to_col=S2_clf.clf_to_col, rgb_img=rgb_img)
+        S2_msk.export_mask_blend(fn, clf_to_col=S2_clf.clf_to_col, rgb_img=rgb_img,
+                                 alpha=args.alpha)
         del rgb_img
 
     if args.export_mask_rgb is True:
@@ -791,15 +796,16 @@ class StdRedirector(object):
                 self.logfile.flush()
 
         if self.gui.update is not None:
-            self.gui.update()
+            pass
+            #self.gui.update()update()
 
     def __close_logfile__(self):
         if self.logging:
             self.logfile.close()
 
     def __del__(self):
-        self.write("EEooFF")
-        self.__close_logfile__()
+        if self.logging:
+            self.__close_logfile__()
 
     def flush(self):
         pass
@@ -946,6 +952,7 @@ class Gui(tk.Tk):
         tk.Tk.__init__(self, parent)
         self.parent = parent
         self.args = args
+        self.updateGUIThread = None
         self.init_gui()
 
     def init_gui(self):
@@ -981,15 +988,19 @@ class Gui(tk.Tk):
         ToolTip(self.tk_button4, text=texts["TT_button_output_folder"])
 
         i_row += 1
-        tk.Label(self, text="Search Pattern:").grid(row=i_row, sticky=tk.E, column=0)
+        lab = tk.Label(self, text="Search Pattern:")
+        lab.grid(row=i_row, sticky=tk.E, column=0)
         frame = tk.Frame(self)
         frame.grid(row=i_row, column=1, sticky=tk.E + tk.W)
-        self.tk_entry_output_folder = tk.Entry(frame)
-        self.tk_entry_output_folder.insert(0, args.glob_search_pattern)
-        self.tk_entry_output_folder.pack(side=tk.LEFT, fill=tk.X, expand=1)
-        self.tk_entry_output_folder.bind('<Return>', self.test_pattern)
+        self.tk_entry_search_pattern = tk.Entry(frame)
+        self.tk_entry_search_pattern.insert(0, args.glob_search_pattern)
+        self.tk_entry_search_pattern.pack(side=tk.LEFT, fill=tk.X, expand=1)
+        self.tk_entry_search_pattern.bind('<Return>', self.test_pattern)
         self.tk_button5 = tk.Button(frame, text="Test Pattern", command=self.test_pattern)
         self.tk_button5.pack(side=tk.LEFT)
+        ToolTip(self.tk_button5, text=texts["TT_search_pattern"])
+        ToolTip(self.tk_entry_search_pattern, text=texts["TT_search_pattern"])
+        ToolTip(lab, text=texts["TT_search_pattern"])
 
         i_row += 1
         tk_lab = tk.Label(self, text="Target Resolution:")
@@ -1101,16 +1112,15 @@ class Gui(tk.Tk):
         sys.stdout = out
         sys.stderr = out
 
-
     def update_gui(self):
-        while self.updateNeeded:
+        while True:
             self.update()
-            sleep(0.05)
+            sleep(0.1)
 
     def main_gui(self):
-        self.updateNeeded = True
-        self.updateGUIThread = Thread(target=self.update_gui)
-        self.updateGUIThread.start()
+        if self.updateGUIThread is None:
+            self.updateGUIThread = Thread(target=self.update_gui)
+            self.updateGUIThread.start()
 
         for button in self.buttons_deactivate_while_processing:
             button["state"] = "disabled"
@@ -1125,12 +1135,11 @@ class Gui(tk.Tk):
         self.args.export_mask_rgb = True if self.exp_to_blend_mask.get() == 1 else False
         self.args.overwrite_output = True if self.oo.get() == 1 else False
 
-        self.args.glob_search_pattern = self.tk_entry_output_folder.get()
+        self.args.glob_search_pattern = self.tk_entry_search_pattern.get()
 
         print("Start with following settings:")
         for key, value in self.args.__dict__.items():
             print("%s -> %s" % (key, str(value)))
-            self.update()
 
         try:
             main(args=self.args)
@@ -1144,10 +1153,8 @@ class Gui(tk.Tk):
         for button in self.buttons_deactivate_while_processing:
             button["state"] = "normal"
 
-        self.updateNeeded = False
-
     def test_pattern(self, event=None):
-        pat = self.tk_entry_output_folder.get()
+        pat = self.tk_entry_search_pattern.get()
         try:
             with Timeout(10.0, swallow_exc=False) as timeout_ctx:
                 res = glob(pat, recursive=True)
@@ -1203,12 +1210,12 @@ if __name__ == "__main__":
                                      description='Cloud, Cirrus, Snow, Shadow Detection for Sentinel-2. ')
 
     group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument("-i", "--S2_MSI_granule_path", action="store", type=str, nargs="*",help=texts["S2_MSI_granule_path"])
+    group.add_argument("-i", "--S2_MSI_granule_path", action="store", type=str, nargs="*",help=texts["S2_MSI_granule_path"])  
     group.add_argument("-f", "--tasks_input_file", action="store", type=str, help=texts["tasks_input_file"])
-    parser.add_argument("-r", "--target_resolution", help="sdsd", action="store", type=float, default=20.0,required=False)
-    parser.add_argument("-o", "--interpolation_order", help="sdsd", action="store", type=int, default=1, required=False,choices=range(1, 6))
-    parser.add_argument("-p", "--persistence_file", help="asd", action="store", type=str,default="./cb_data_20151211.pkl")
-    parser.add_argument("-e", "--mask_export_format", help="asd", action="store", type=str, default="jp2",choices=["jp2"])
+    parser.add_argument("-r", "--target_resolution", help=texts["TT_target_resolution"], action="store", type=float, default=20.0,required=False)
+    parser.add_argument("-o", "--interpolation_order", help=texts["TT_interpolation_order"], action="store", type=int, default=1, required=False,choices=range(1, 6))
+    parser.add_argument("-p", "--persistence_file", help=texts["TT_button_classifier_file"], action="store", type=str,default="./cb_data_20151211.pkl")
+    parser.add_argument("-e", "--mask_export_format", help="asds", action="store", type=str, default="jp2",choices=["jp2"])
     parser.add_argument("-w", "--show_warnings", help="asd", action="store_true", default=False)
     parser.add_argument("-t", "--float_type", help="sdsd", action="store", type=int, default=32, required=False,choices=[16, 32, 64])
     parser.add_argument("-d", "--output_directory", help="asd", action="store", type=str, default="./")
@@ -1228,13 +1235,14 @@ if __name__ == "__main__":
     parser.add_argument("-W", "--overwrite_output", help="asd", action="store_true", default=False)
     parser.add_argument("-l", "--logging", help="asd", action="store_true", default=False)
     parser.add_argument("-L", "--logfile_stub", help="asd", type=str, action="store", default="./cb4S2_%s.log")
+    parser.add_argument("-A", "--alpha", help="sdsd", action="store", type=float, default=0.6,required=False)
 
     args = parser.parse_args()
 
     tme = gmtime()
     args.suffix = "%i%i%i_%i:%i" % (tme.tm_year,tme.tm_mon,tme.tm_mday,tme.tm_hour,tme.tm_min)
 
-    if args.S2_MSI_granule_path is not None or args.tasks_input_file is not None and args.gui == "no":
+    if args.S2_MSI_granule_path is not None or args.tasks_input_file is not None or args.gui == "no":
         main(args)
     else:
         print("No command line argument were given -> start GUI")
