@@ -110,7 +110,19 @@ where [..] denotes an arbitrary, but valid path on your file system.""",
     """Granules can be specified using a search pattern which is applied to all directories below the current working directory. The search is stopped after 10 seconds to prevent a frozen application. When using the GUI, the current pattern can be tested by hitting [ENTER] or clicking on the button to the right side. Current results will be printed to the output window..""",
     
     "TT_export_jp2_csv":
-        """Export mask to jp2 image and store additional metadata in a separate csv file. """
+        """Export mask to [jp2] image and store additional metadata in a separate csv file. """,
+
+    "TT_show_warnings":
+    """As a default, warnings from pyhton packages are only shown with this option set.""",
+
+    "TT_float_type":
+    """ Select the default number ob bit's per float at various stages of the program.""",
+
+    "TT_use_thread_pool":
+    """Use thread pool instead of processes. Useful for debugging reasons to collect full error tracebacks.""",
+
+    "TT_RGB_channels":
+    """Channels used to output a RGB image. Should be a comma separated list of 3 to 4 entry's. Possible choices are: 'B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B8A', 'B09', 'B10', 'B11', 'B12'. If your channels are selected, the fourth one is interpreted as alpha channel. """
 }
 
 
@@ -682,11 +694,6 @@ def mask_image(args, S2_MSI_granule_path):
 def main(args):
     global Pool
     global ThreadPool
-
-    if args.verbosity == 0:
-        ff = open(devnull, 'w')
-        sys.stdout = ff
-
     print(texts["welcome"])
 
     if args.show_warnings is not True:
@@ -1033,8 +1040,11 @@ class Gui(tk.Tk):
         frame.grid(row=i_row, column=1, sticky=tk.E + tk.W)
         et = tk.StringVar()
         et.set("jp2")
-        for ii, (key, text) in enumerate([("jp2", "Jpeg200+CSV")]):
-            tk.Radiobutton(frame, text="%s" % text, variable=et, value=key).pack(side=tk.LEFT, fill=tk.X)
+        for ii, (key, text,tt) in enumerate([("jp2", "Jpeg200+CSV","TT_export_jp2_csv")]):
+            bf = tk.Radiobutton(frame, text="%s" % text, variable=et, value=key)
+            bf.pack(side=tk.LEFT, fill=tk.X)
+            ToolTip(bf, text=texts[tt])
+
 
         frame = tk.Frame(frame, padx=1, bd=1)
         frame.pack(side=tk.LEFT, fill=tk.X)
@@ -1215,15 +1225,16 @@ if __name__ == "__main__":
     parser.add_argument("-r", "--target_resolution", help=texts["TT_target_resolution"], action="store", type=float, default=20.0,required=False)
     parser.add_argument("-o", "--interpolation_order", help=texts["TT_interpolation_order"], action="store", type=int, default=1, required=False,choices=range(1, 6))
     parser.add_argument("-p", "--persistence_file", help=texts["TT_button_classifier_file"], action="store", type=str,default="./cb_data_20151211.pkl")
-    parser.add_argument("-e", "--mask_export_format", help="asds", action="store", type=str, default="jp2",choices=["jp2"])
-    parser.add_argument("-w", "--show_warnings", help="asd", action="store_true", default=False)
-    parser.add_argument("-t", "--float_type", help="sdsd", action="store", type=int, default=32, required=False,choices=[16, 32, 64])
-    parser.add_argument("-d", "--output_directory", help="asd", action="store", type=str, default="./")
-    parser.add_argument("-m", "--create_output_folder", help="asd", action="store_false", default=True)
-    parser.add_argument("-v", "--verbosity", help="asd", action="store", type=int, choices=[0, 1], default=1)
-    parser.add_argument("-n", "--number_of_threads", help="asd", action="store", type=int, default=1)
-    parser.add_argument("-q", "--use_thread_pool", help="asd", action="store_true", default=False)
-    parser.add_argument("-j", "--RGB_channels", help="asd", action="store", type=str, default="B11,B08,B03")
+    parser.add_argument("-e", "--mask_export_format", help=texts["TT_export_jp2_csv"], action="store", type=str, default="jp2",choices=["jp2"])
+    parser.add_argument("-w", "--show_warnings", help=texts["TT_show_warnings"], action="store_true", default=False)
+    parser.add_argument("-t", "--float_type", help=texts["TT_float_type"], action="store", type=int, default=32, required=False,choices=[16, 32, 64])
+    parser.add_argument("-d", "--output_directory", help=texts["TT_button_output_folder"], action="store", type=str, default="./")
+    parser.add_argument("-m", "--create_output_folder", help="", action="store_false", default=True)
+    parser.add_argument("-n", "--number_of_threads", help=texts["TT_number_of_threads"], action="store", type=int, default=1)
+    parser.add_argument("-q", "--use_thread_pool", help=texts["TT_use_thread_pool"], action="store_true", default=False)
+    parser.add_argument("-j", "--RGB_channels", help=texts["TT_RGB_channels"], action="store", type=str, default="B11,B08,B03")
+
+
     parser.add_argument("-g", "--gui", help="asd", action="store", type=str, default="yes", choices=["yes", "no"])
     parser.add_argument("-x", "--export_RGB", help="asd", action="store_true", default=False)
     parser.add_argument("-z", "--export_mask_blend", help="asd", action="store_true", default=False)
@@ -1231,7 +1242,7 @@ if __name__ == "__main__":
     parser.add_argument("-C", "--export_confidence", help="asd", action="store_true", default=False)
     parser.add_argument("-a", "--additional_output_pixel_skip", help="sdsd", action="store", type=int, default=1,required=False)
     parser.add_argument("-T", "--processing_tiles", help="asd", action="store", type=int, choices=range(0, 20),default=10)
-    parser.add_argument("-G", "--glob_search_pattern", help="asd", action="store", type=str, default="**/GRANULE/*")
+    parser.add_argument("-G", "--glob_search_pattern", help="asd", action="store", type=str, default="") # **/GRANULE/*
     parser.add_argument("-W", "--overwrite_output", help="asd", action="store_true", default=False)
     parser.add_argument("-l", "--logging", help="asd", action="store_true", default=False)
     parser.add_argument("-L", "--logfile_stub", help="asd", type=str, action="store", default="./cb4S2_%s.log")
