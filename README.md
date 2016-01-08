@@ -14,7 +14,7 @@ Requires at least python 3.5.
 
 ## with graphical user interface
 
-![screen shot of the gui](https://github.com/hollstein/images/blob/master/gui.jpg)
+![screen shot of the GUI](https://github.com/hollstein/images/blob/master/gui.jpg)
 
 # Products / Results
 
