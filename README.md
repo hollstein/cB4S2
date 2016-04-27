@@ -4,7 +4,7 @@ This software is intended to be used for the classification of clouds, cirrus, s
 
 *Ready-To-use Methods for the Detection of Clouds, Cirrus, Snow, Shadow, Water and Clear Sky Pixels in Sentinel-2 MSI Images, remote sensing, André Hollstein, Karl Segl, Luis Guanter, Maximilian Brell, Marta Enesco, submitted, 4/2016*
 
-It is highly likely that the software doesn't work on your system since only limited testing on other platforms than my desktop was done so far. If you have problems, let me know. 
+It is highly likely that the software doesn't work on your system since only limited testing on other platforms than my desktop was done so far. If you have problems, [let me know](http://www.gfz-potsdam.de/en/section/remote-sensing/staff/profil/andre-hollstein/). 
 
 # Install using pip
 
