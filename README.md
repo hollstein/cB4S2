@@ -1,6 +1,6 @@
 # cb4S2 - classical Bayesian for Sentinel-2
 
-** The paper was just submitted and therefore I created this repo. It won't work for you now - please come back after ESA Living Planet Symposium, by then it should work.**
+**The paper was just submitted and therefore I created this repo. It won't work for you now - please come back after ESA Living Planet Symposium, by then it should work.**
 
 This software is intended to be used for the classification of clouds, cirrus, shadow, water, and clear sky pixels in [Sentinel-2 MSI](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) images. The software is in its infancy, but should be ready to use. The used approach is described in a paper submitted to MDPI remote sensing:
 
