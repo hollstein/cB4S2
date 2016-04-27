@@ -1,18 +1,24 @@
 # cb4S2 - classical Bayesian for Sentinel-2
 
-This software is intended to be used for the classification of clouds, cirrus, shadow, water, and clear sky pixels in [Sentinel-2 MSI](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) images. The software is in its infancy but should be ready to use. The used approach is described in a paper submitted to MDPI remote sensing:
+This software is intended to be used for the classification of clouds, cirrus, shadow, water, and clear sky pixels in [Sentinel-2 MSI](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) images. The software is in its infancy, but should be ready to use. The used approach is described in a paper submitted to MDPI remote sensing:
 
-Ready-To-use Methods for the Detection of Clouds, Cirrus, Snow, Shadow, Water and Clear Sky Pixels in Sentinel-2 MSI Images, remote sensing, André Hollstein, Karl Segl, Luis Guanter, Maximilian Brell, Marta Enesco, submitted
+*Ready-To-use Methods for the Detection of Clouds, Cirrus, Snow, Shadow, Water and Clear Sky Pixels in Sentinel-2 MSI Images, remote sensing, André Hollstein, Karl Segl, Luis Guanter, Maximilian Brell, Marta Enesco, submitted, 4/2016*
 
-It is highly likely that the software doesn't work on your system since only limited testing on other platforms was done so far. If you have problems, let me know. 
+It is highly likely that the software doesn't work on your system since only limited testing on other platforms than my desktop was done so far. If you have problems, let me know. 
 
 # Install using pip
 
-This software requires at least python 3.5 and can be installed trough pip:
+This software requires at least **python 3.5 and can be installed trough pip:
 
 `pip install git+git://github.com/hollstein/cB4S2.git`
 
-If requested, I will try to compile binaries (not before end of May '16).
+If no install is wanted, a simple clone should work too:
+
+`git clone https://github.com/hollstein/cB4S2.git/`
+
+If you don't have a python distribution already, I recommend to use [Anaconda](https://www.continuum.io/downloads).
+
+If requested, I will try to compile binaries (not before end of May '16, though).
 
 # Licence
 
@@ -24,9 +30,7 @@ If requested, I will try to compile binaries (not before end of May '16).
 
 Command line tool with some configurable parameters:
 
-```
->> cB4S2.py -h
-```
+`cB4S2.py -h`
 
 ![screen shot of the command line](https://github.com/hollstein/images/blob/master/cB4S2_cmdl.jpg)
 
