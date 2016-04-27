@@ -26,7 +26,7 @@ If requested, I will try to compile binaries (not before end of May '16, though)
 
 # Usage
 
-## as a command line tool
+## Command Line
 
 Command line tool with some configurable parameters:
 
@@ -34,7 +34,7 @@ Command line tool with some configurable parameters:
 
 ![screen shot of the command line](https://github.com/hollstein/images/blob/master/cB4S2_cmdl.jpg)
 
-## with graphical user interface
+## Graphical User Interface
 
 If called without parameters, a little GUI is shown:
 
