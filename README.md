@@ -8,7 +8,7 @@ It is highly likely that the software doesn't work on your system since only lim
 
 # Install using pip
 
-This software requires at least **python 3.5 and can be installed trough pip:
+This software requires at least **python 3.5** and can be installed trough pip:
 
 `pip install git+git://github.com/hollstein/cB4S2.git`
 
