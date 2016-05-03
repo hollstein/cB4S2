@@ -1,7 +1,5 @@
 # cb4S2 - classical Bayesian for Sentinel-2
 
-**The paper was just submitted and therefore I created this repo. It won't work for you now - please come back after ESA Living Planet Symposium, by then it should work.**
-
 This software is intended to be used for the classification of clouds, cirrus, shadow, water, and clear sky pixels in [Sentinel-2 MSI](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) images. The software is in its infancy, but should be ready to use. The used approach is described in a paper submitted to MDPI remote sensing:
 
 *Ready-To-use Methods for the Detection of Clouds, Cirrus, Snow, Shadow, Water and Clear Sky Pixels in Sentinel-2 MSI Images, remote sensing, André Hollstein, Karl Segl, Luis Guanter, Maximilian Brell, Marta Enesco, submitted, 4/2016*
@@ -10,7 +8,7 @@ It is highly likely that the software doesn't work on your system since only lim
 
 # Install using pip
 
-This software requires at least **python 3.5** and can be installed trough pip:
+This software requires my [**S2MSI**](https://github.com/hollstein/cB4S2) module as well as at least **python 3.5** and can be installed trough pip:
 
 `pip install git+git://github.com/hollstein/cB4S2.git`
 

@@ -567,9 +567,7 @@ if __name__ == "__main__":
     ad_ar("-C", "--export_confidence", help="TBD", action="store_true", default=False)
     ad_ar("-T", "--processing_tiles", help="TBD", action="store", type=int, choices=range(0, 20),default=10)
     ad_ar("-D","--jp2_driver", help="TBD", action="store", type=str, default="gdal_JP2KAK", choices=["OpenJpeg2000", "gdal_JP2KAK"])
-
     ad_ar("-G", "--glob_search_pattern", help="TBD", action="store", type=str,default="./**/GRANULE/*S2A*")
-
     ad_ar("-W", "--overwrite_output", help="TBD", action="store_true", default=True)
     ad_ar("-l", "--logging", help="TBD", action="store_true", default=False)
     ad_ar("-L", "--logfile_stub", help="TBD", type=str, action="store", default="./cb4S2_%s.log")
